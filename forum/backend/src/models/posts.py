@@ -13,5 +13,5 @@ class Post(Base):
 
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
 
-    user = relationship("User", foreign_keys=[user_id])
+    owner = relationship("User", foreign_keys=[user_id])
     comments = relationship("Comment", back_populates="post")
