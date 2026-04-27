@@ -37,7 +37,9 @@
     <last-used-providers />
   </component>
   <component name="DBNavigator.Project.DatabaseFileManager">
-    <open-files />
+    <open-files>
+      <object connection-id="c4a00df1-d33f-48c8-bbc2-7278e1be795d" object-ref="schemas/forum/tables/users" />
+    </open-files>
   </component>
   <component name="DBNavigator.Project.DatabasePrerequisiteManager">
     <prerequisites />
@@ -47,7 +49,11 @@
   </component>
   <component name="DBNavigator.Project.DatasetFilterManager">
     <filter-actions connection-id="c4a00df1-d33f-48c8-bbc2-7278e1be795d" dataset="forum.posts" active-filter-id="" />
-    <filter-actions connection-id="c4a00df1-d33f-48c8-bbc2-7278e1be795d" dataset="forum.users" active-filter-id="" />
+    <filter-actions connection-id="c4a00df1-d33f-48c8-bbc2-7278e1be795d" dataset="forum.users" active-filter-id="">
+      <filter id="7a9eda5d-d324-4475-94fa-95b1fe21c985" name="Filter" temporary="false" custom-name="false" type="basic" join-type="AND">
+        <condition column="id" operator="=" value="" active="true" />
+      </filter>
+    </filter-actions>
   </component>
   <component name="DBNavigator.Project.ObjectQuickFilterManager">
     <last-used-operator value="EQUAL" />
