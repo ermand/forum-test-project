@@ -3,5 +3,6 @@
 .env
 __pycache__/
 *.pyc
-forum.db
+*.db
 .idea/
+forum/backend/tests/test_auth_no_db.py

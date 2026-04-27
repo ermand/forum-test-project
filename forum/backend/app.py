@@ -1,10 +1,13 @@
+from fastapi import FastAPI
 from core.db_connection.database import engine, Base
+from src.models import user, posts, comments
 
-def create_tables(engine):
-    print("Creating tables")
-    Base.metadata.create_all(engine)
-    print("Tables created")
+# Këtu krijohet variabli 'app' që i mungonte Python-it
+app = FastAPI()
 
+# Kjo komandë krijon tabelat në forum.db
+Base.metadata.create_all(bind=engine)
 
-if __name__ == "__main__":
-    create_tables(engine)
+@app.get("/")
+def check_health():
+    return {"status": "Gati!", "db": "E lidhur"}
