@@ -17,7 +17,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         if user_id is None:
             raise HTTPException(status_code=401, detail="Token i pavlefshëm")
     except JWTError:
-        # Kjo kap çdo gabim me tokenin (i skaduar, i thyer, etj)
+
         raise HTTPException(status_code=401, detail="Nuk mund të vërtetohet identiteti")
 
     user = db.query(User).filter(User.id == user_id).first()
