@@ -15,23 +15,22 @@ limiter = Limiter(key_func=get_remote_address)
 
 @router.post(
     "/posts/{id}/comments", response_model=ApiResponse[CommentResponse], status_code=status.HTTP_201_CREATED, )
-@limiter.limit("5/minute")
 async def create_comment(
-        request:Request,
+        _request:Request,
         id: Annotated[UUID, Path()],
         comment: Annotated[CommentCreate, Form()],
         db: SessionDep,
-        current_user: CurrentUserDep,
+    current_user: CurrentUserDep,
 ):
     comment.post_id = id
-    comment_created = await  comment_service.comment_create(db, comment_data=comment, user_id=current_user.id)
-    return ApiResponse(success=True, data=comment_created)
+    return await comment_service.comment_create(
+        db, comment_data=comment, user_id=current_user.id
+    )
 
 
 @router.get("/posts/{id}/comments", response_model=ApiResponse[PaginatedResponse[CommentResponse]])
-@limiter.limit("5/minute")
 async def read_comments(
-        request: Request,
+        _request: Request,
         id: Annotated[UUID, Path()],
         db: SessionDep,
         params: Annotated[PaginationParams, Query()],
@@ -48,10 +47,9 @@ async def update_comment(
         db: SessionDep,
         current_user: CurrentUserDep,
 ):
-    comment_update = await comment_service.update_post_comment(
+    return await comment_service.update_post_comment(
         db, comment_data=comment, comment_id=id, user_id=current_user.id
     )
-    return ApiResponse(data=comment_update)
 
 
 @router.delete("/comments/{id}", status_code=status.HTTP_200_OK)
@@ -60,7 +58,6 @@ async def delete_comment(
         db: SessionDep,
         current_user: CurrentUserDep,
 ):
-    await comment_service.delete_post_comment(
+    return await comment_service.delete_post_comment(
         db, comment_id=id, user_id=current_user.id
     )
-    return ApiResponse(success=True, message="Comment deleted")

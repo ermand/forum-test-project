@@ -2,6 +2,7 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from src.models import Post, Comment
 
 from src.schemas.comment import CommentCreate, CommentUpdate, CommentResponse
@@ -43,6 +44,7 @@ async def get_post_comments(db: AsyncSession, post_id: UUID, params: PaginationP
         )
     statement = (
         select(Comment)
+        .options(selectinload(Comment.author), selectinload(Comment.post))
         .where(Comment.post_id == post_id)
         .order_by(Comment.created_at.asc())
     )

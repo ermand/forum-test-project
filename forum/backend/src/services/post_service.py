@@ -1,12 +1,33 @@
 from uuid import UUID
 from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload, with_expression
 from starlette import status
+from src.models.comments import Comment
 from src.utils.pagination import paginate
 from src.models.posts import Post
 from src.schemas.posts import PostCreate, PostUpdate
 from src.utils import PaginationParams
+
+
+def post_comments_count_expression():
+    return (
+        select(func.count(Comment.id))
+        .where(Comment.post_id == Post.id)
+        .correlate(Post)
+        .scalar_subquery()
+    )
+
+
+def post_loader_options(*, include_comments: bool = False):
+    options = [
+        selectinload(Post.owner),
+        with_expression(Post.comments_count, post_comments_count_expression()),
+    ]
+    if include_comments:
+        options.append(selectinload(Post.comments))
+    return options
 
 
 async def create_new_post(db: AsyncSession, post_data: PostCreate, user_id: UUID):
@@ -22,13 +43,21 @@ async def create_new_post(db: AsyncSession, post_data: PostCreate, user_id: UUID
 
 
 async def get_posts(db: AsyncSession, params: PaginationParams):
-    statement = select(Post).order_by(Post.created_at.desc())
+    statement = (
+        select(Post)
+        .options(*post_loader_options())
+        .order_by(Post.created_at.desc())
+        .execution_options(populate_existing=True)
+    )
     return await paginate(db, statement, params)
 
 
 async def get_post(db: AsyncSession, post_id: UUID):
     result = await db.execute(
-        select(Post).filter(Post.id == post_id)
+        select(Post)
+        .options(*post_loader_options(include_comments=True))
+        .where(Post.id == post_id)
+        .execution_options(populate_existing=True)
     )
     post = result.scalar_one_or_none()
 

@@ -1,10 +1,17 @@
 from __future__ import annotations
 from datetime import datetime
 from uuid import UUID, uuid4
+from typing import TYPE_CHECKING
+
 from sqlalchemy import DateTime, String, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from core.db_connection.database import Base
 from sqlalchemy import func
+
+if TYPE_CHECKING:
+    from src.models.comments import Comment
+    from src.models.posts import Post
+    from src.models.refresh_token import RefreshToken
 
 
 class User(Base):
@@ -22,10 +29,25 @@ class User(Base):
         DateTime(timezone=True), onupdate=func.now()
     )
 
-    posts: Mapped[list["Post"]] = relationship("Post", back_populates="owner", cascade="all, delete-orphan")
+    posts: Mapped[list["Post"]] = relationship(
+        "Post",
+        back_populates="owner",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+        passive_deletes=True,
+        order_by="Post.created_at.desc()",
+    )
     comments: Mapped[list["Comment"]] = relationship(
-        "Comment", back_populates="author", cascade="all, delete-orphan"
+        "Comment",
+        back_populates="author",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+        passive_deletes=True,
     )
     refresh_tokens: Mapped[list["RefreshToken"]] = relationship(
-        "RefreshToken", back_populates="user", cascade="all, delete-orphan"
+        "RefreshToken",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+        passive_deletes=True,
     )

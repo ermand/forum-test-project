@@ -15,7 +15,6 @@ router = APIRouter(prefix="/users", tags=["Users"])
 
 
 @router.get("/me", response_model=ApiResponse[UserProfileResponse])
-@limiter.limit("5/minute")
 async def get_my_profile(request: Request, db: SessionDep, current_user: CurrentUserDep,
                          params: Annotated[PaginationParams, Query()]):
     profile_data = await user_service.get_user_profile(db, user_id=current_user.id, params=params
@@ -24,7 +23,6 @@ async def get_my_profile(request: Request, db: SessionDep, current_user: Current
 
 
 @router.get("/{id}", response_model=ApiResponse[UserResponse])
-@limiter.limit("5/minute")
 async def get_user_by_id(request: Request, id: Annotated[UUID, Path()], db: SessionDep):
     user = await user_service.get_user_by_id(db, user_id=id)
 

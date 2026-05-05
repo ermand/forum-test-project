@@ -15,6 +15,7 @@ class PostResponse(BaseModel):
     content: str
     user_id: UUID
     created_at: datetime
+    comments_count: int = 0
 
     model_config = ConfigDict(from_attributes=True)
 
