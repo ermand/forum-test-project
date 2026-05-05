@@ -19,6 +19,7 @@ dependencies = [
     "psycopg[binary]>=3.3.3",
     "ruff>=0.15.12",
     "aiosqlite>=0.22.1",
+    "slowapi>=0.1.9",
 ]
 
 [tool.uv]

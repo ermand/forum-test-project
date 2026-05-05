@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from uuid import UUID, uuid4
-from src.models import User, Post
+
 from sqlalchemy import DateTime, ForeignKey, String, Uuid, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from core.db_connection.database import Base

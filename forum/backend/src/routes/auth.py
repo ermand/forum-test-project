@@ -1,5 +1,5 @@
 from typing import Annotated
-from fastapi import APIRouter, Depends, Form, HTTPException, status
+from fastapi import APIRouter, Depends, Form, HTTPException, status , Request
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import EmailStr
 from core.auth.jwt import create_access_token
@@ -13,6 +13,10 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.models.refresh_token import RefreshToken
 from src.config.settings import settings
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+
+limiter = Limiter(key_func=get_remote_address)
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -40,7 +44,9 @@ async def issue_token_pair(db: AsyncSession, user, settings: Settings) -> Token:
 @router.post(
     "/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED
 )
+@limiter.limit("5/minute")
 async def register_user(
+        request : Request,
         user_data: Annotated[UserCreate, Depends(registration_form)],
         db: SessionDep,
 ):
@@ -61,7 +67,9 @@ async def register_user(
 
 @router.post("/token", response_model=Token)
 @router.post("/login", response_model=Token, include_in_schema=False)
+@limiter.limit("5/minute")
 async def login_for_tokens(
+        request: Request,
         form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
         db: SessionDep,
         settings: SettingsDep,

@@ -1,10 +1,11 @@
 from typing import Annotated
 from uuid import UUID
-from fastapi import APIRouter, Path, status, Query, Form
-from requests import Response
-
+from fastapi import APIRouter, Path, status, Query, Form , Request
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+limiter = Limiter(key_func=get_remote_address)
 from core.auth.dependencies import CurrentUserDep
-from core.db_connection.session import SessionDep, get_db
+from core.db_connection.session import SessionDep
 from src.schemas.posts import PostCreate, PostResponse, PostUpdate
 from src.services import post_service
 from src.utils import ApiResponse, PaginatedResponse, PaginationParams
@@ -13,19 +14,23 @@ router = APIRouter(prefix="/posts", tags=["Posts"])
 
 
 @router.get("/", response_model=ApiResponse[PaginatedResponse[PostResponse]])
-async def read_posts(db: SessionDep, params: Annotated[PaginationParams, Query()]):
+@limiter.limit("5/minute")
+async def read_posts(request:Request,db: SessionDep, params: Annotated[PaginationParams, Query()]):
     data = await post_service.get_posts(db, params=params)
     return ApiResponse(data=data)
 
 
 @router.get("/{id}", response_model=ApiResponse[PostResponse])
-async def read_single_post(id: Annotated[UUID, Path()], db: SessionDep):
+@limiter.limit("5/minute")
+async def read_single_post(request:Request,id: Annotated[UUID, Path()], db: SessionDep):
     post = await post_service.get_post(db, id)
     return ApiResponse(data=post)
 
 
 @router.post("/", response_model=ApiResponse[PostResponse], status_code=status.HTTP_201_CREATED)
+@limiter.limit("5/minute")
 async def create_post(
+        request: Request,
         post: Annotated[PostCreate, Form()],
         db: SessionDep,
         current_user: CurrentUserDep,

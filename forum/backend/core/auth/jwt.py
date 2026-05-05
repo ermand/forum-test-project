@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from uuid import uuid4
-import pyjwt as jwt
+import jwt
 from jwt.exceptions import InvalidTokenError
 
 from src.config.settings import settings

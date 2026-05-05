@@ -1,25 +1,31 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Query, Path
+from fastapi import APIRouter, Query, Path, Request
 from core.auth.dependencies import CurrentUserDep
 from core.db_connection.session import SessionDep
 from src.schemas.user import UserResponse, UserProfileResponse
 from src.services import user_service
 from src.utils import ApiResponse, PaginationParams
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
+limiter = Limiter(key_func=get_remote_address)
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
 @router.get("/me", response_model=ApiResponse[UserProfileResponse])
-async def get_my_profile(db: SessionDep, current_user: CurrentUserDep, params: Annotated[PaginationParams, Query()]):
+@limiter.limit("5/minute")
+async def get_my_profile(request: Request, db: SessionDep, current_user: CurrentUserDep,
+                         params: Annotated[PaginationParams, Query()]):
     profile_data = await user_service.get_user_profile(db, user_id=current_user.id, params=params
                                                        )
     return ApiResponse(data=profile_data)
 
 
 @router.get("/{id}", response_model=ApiResponse[UserResponse])
-async def get_user_by_id(id: Annotated[UUID, Path()], db: SessionDep):
+@limiter.limit("5/minute")
+async def get_user_by_id(request: Request, id: Annotated[UUID, Path()], db: SessionDep):
     user = await user_service.get_user_by_id(db, user_id=id)
 
     return ApiResponse(

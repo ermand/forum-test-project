@@ -1,7 +1,8 @@
 from typing import Annotated
 from uuid import UUID
-from fastapi import APIRouter, Path, status, Query, Form
-
+from fastapi import APIRouter, Path, status, Query, Form , Request
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from core.auth.dependencies import CurrentUserDep
 from core.db_connection.session import SessionDep
 from src.schemas.comment import CommentCreate, CommentResponse, CommentUpdate
@@ -10,11 +11,13 @@ from src.utils.schemas import ApiResponse, PaginationParams
 from src.utils.schemas import PaginatedResponse
 
 router = APIRouter(tags=["Comments"])
-
+limiter = Limiter(key_func=get_remote_address)
 
 @router.post(
     "/posts/{id}/comments", response_model=ApiResponse[CommentResponse], status_code=status.HTTP_201_CREATED, )
+@limiter.limit("5/minute")
 async def create_comment(
+        request:Request,
         id: Annotated[UUID, Path()],
         comment: Annotated[CommentCreate, Form()],
         db: SessionDep,
@@ -26,7 +29,9 @@ async def create_comment(
 
 
 @router.get("/posts/{id}/comments", response_model=ApiResponse[PaginatedResponse[CommentResponse]])
+@limiter.limit("5/minute")
 async def read_comments(
+        request: Request,
         id: Annotated[UUID, Path()],
         db: SessionDep,
         params: Annotated[PaginationParams, Query()],
@@ -58,4 +63,4 @@ async def delete_comment(
     await comment_service.delete_post_comment(
         db, comment_id=id, user_id=current_user.id
     )
-    return ApiResponse(success=True,message="Comment deleted")
+    return ApiResponse(success=True, message="Comment deleted")
