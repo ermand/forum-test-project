@@ -1,26 +1,44 @@
-from fastapi import Depends, HTTPException
+from typing import Annotated
+
+from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
-from jose import jwt, JWTError
-from sqlalchemy.orm import Session
 from src.models.user import User
-from core.db_connection.session import get_db
-from src.config.settings import settings
+from core.db_connection.session import SessionDep
+from core.auth.jwt import AccessTokenError, decode_access_token
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
+OAuth2TokenDep = Annotated[str, Depends(oauth2_scheme)]
 
 
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+from sqlalchemy import select
+from fastapi import HTTPException
+
+async def get_current_user(
+    token: OAuth2TokenDep,
+    db: SessionDep,
+) -> User:
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        payload = decode_access_token(token)
         username: str = payload.get("sub")
         if username is None:
             raise HTTPException(status_code=401, detail="Invalid token")
-    except JWTError:
-        raise HTTPException(status_code=401, detail="Could not validate credentials")
+    except AccessTokenError:
+        raise HTTPException(
+            status_code=401,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
-    user = db.query(User).filter(User.username == username).first()
+    result = await db.execute(select(User).where(User.username == username))
+    user = result.scalars().first()
 
     if not user:
-        raise HTTPException(status_code=401, detail="User not found")
+        raise HTTPException(
+            status_code=401,
+            detail="User not found",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
     return user
+
+CurrentUserDep = Annotated[User, Depends(get_current_user)]

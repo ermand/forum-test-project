@@ -1,56 +1,87 @@
-from sqlalchemy.orm import Session
+from uuid import UUID
+from fastapi import HTTPException
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from starlette import status
+from src.utils.pagination import paginate
 from src.models.posts import Post
 from src.schemas.posts import PostCreate, PostUpdate
+from src.utils import PaginationParams
 
 
-def create_new_post(db: Session, post_data: PostCreate, user_id: int):
+async def create_new_post(db: AsyncSession, post_data: PostCreate, user_id: UUID):
     db_post = Post(
         title=post_data.title,
         content=post_data.content,
         user_id=user_id
     )
     db.add(db_post)
-    db.commit()
-    db.refresh(db_post)
+    await db.commit()
+    await db.refresh(db_post)
     return db_post
 
 
-def get_posts(db: Session, skip: int = 0, limit: int = 10):
-    return db.query(Post).offset(skip).limit(limit).all()
+async def get_posts(db: AsyncSession, params: PaginationParams):
+    statement = select(Post).order_by(Post.created_at.desc())
+    return await paginate(db, statement, params)
 
 
-def get_post(db: Session, post_id: int):
-    return db.query(Post).filter(Post.id == post_id).first()
+async def get_post(db: AsyncSession, post_id: UUID):
+    result = await db.execute(
+        select(Post).filter(Post.id == post_id)
+    )
+    post = result.scalar_one_or_none()
+
+    if not post:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Post not found"
+        )
+
+    return post
 
 
-def update_post(db: Session, post_id: int, post_update: PostUpdate, user_id: int):
-    db_post = db.query(Post).filter(Post.id == post_id).first()
+async def update_post(db: AsyncSession, post_id: UUID, post_update: PostUpdate, user_id: UUID):
+    result = await db.execute(
+        select(Post).filter(Post.id == post_id)
+    )
+    db_post = result.scalar_one_or_none()
 
-    if not db_post:
-        return None
+    if db_post is None:
+        raise HTTPException(status_code=404, detail="Post not found")
 
     if db_post.user_id != user_id:
-        return "forbidden"
+        raise HTTPException(
+            status_code=403,
+            detail="You do not have permission to edit this post"
+        )
 
     if post_update.title:
         db_post.title = post_update.title
     if post_update.content:
         db_post.content = post_update.content
 
-    db.commit()
-    db.refresh(db_post)
+    await db.commit()
+    await db.refresh(db_post)
     return db_post
 
 
-def delete_posts(db: Session, id: int, user_id: int):
-    db_post = db.query(Post).filter(Post.id == id).first()
-    if not db_post:
-        return None
+async def delete_post(db: AsyncSession, post_id: UUID, user_id: UUID):
+    result = await db.execute(select(Post).filter(Post.id == post_id))
+    db_post = result.scalar_one_or_none()
+
+    if db_post is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Post not found"
+        )
 
     if db_post.user_id != user_id:
-        return "forbidden"
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to delete this post",
+        )
 
-    db.delete(db_post)
-    db.commit()
+    await db.delete(db_post)
+    await db.commit()
 
     return True

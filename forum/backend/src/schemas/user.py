@@ -1,14 +1,17 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from datetime import datetime
-from typing import Optional
+from uuid import UUID
+from src.schemas.posts import PostResponse
+from src.utils import PaginatedResponse
+
 
 class UserBase(BaseModel):
-    username: str
+    username: str = Field(min_length=3, max_length=50)
     email: EmailStr
 
 
 class UserCreate(UserBase):
-    password: str
+    password: str = Field(min_length=8, max_length=128)
 
 
 class UserLogin(BaseModel):
@@ -17,16 +20,14 @@ class UserLogin(BaseModel):
 
 
 class UserResponse(UserBase):
-    id: int
+    id: UUID
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
-class Token(BaseModel):
-    access_token: str
-    token_type: str
+class UserProfileResponse(BaseModel):
+    user_info: UserResponse
+    posts: PaginatedResponse[PostResponse]
 
-class TokenData(BaseModel):
-    username: Optional[str] = None
+    model_config = ConfigDict(from_attributes=True)

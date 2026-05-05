@@ -1,64 +1,55 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from typing import List
+from typing import Annotated
+from uuid import UUID
+from fastapi import APIRouter, Path, status, Query, Form
+from requests import Response
+
+from core.auth.dependencies import CurrentUserDep
+from core.db_connection.session import SessionDep, get_db
 from src.schemas.posts import PostCreate, PostResponse, PostUpdate
 from src.services import post_service
-from core.db_connection.session import get_db
-from core.auth.dependencies import get_current_user
+from src.utils import ApiResponse, PaginatedResponse, PaginationParams
 
 router = APIRouter(prefix="/posts", tags=["Posts"])
 
 
-@router.get("/", response_model=List[PostResponse])
-def read_posts(db: Session = Depends(get_db)):
-    return post_service.get_posts(db)
+@router.get("/", response_model=ApiResponse[PaginatedResponse[PostResponse]])
+async def read_posts(db: SessionDep, params: Annotated[PaginationParams, Query()]):
+    data = await post_service.get_posts(db, params=params)
+    return ApiResponse(data=data)
 
 
-@router.get("/{id}", response_model=PostResponse)
-def read_single_post(id: int, db: Session = Depends(get_db)):
-    post = post_service.get_post(db, id)
-    if not post:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Postimi nuk u gjet"
-        )
-    return post
+@router.get("/{id}", response_model=ApiResponse[PostResponse])
+async def read_single_post(id: Annotated[UUID, Path()], db: SessionDep):
+    post = await post_service.get_post(db, id)
+    return ApiResponse(data=post)
 
 
-@router.post("/", response_model=PostResponse, status_code=status.HTTP_201_CREATED)
-def create_post(post: PostCreate, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
-    return post_service.create_new_post(db, post_data=post, user_id=current_user.id)
+@router.post("/", response_model=ApiResponse[PostResponse], status_code=status.HTTP_201_CREATED)
+async def create_post(
+        post: Annotated[PostCreate, Form()],
+        db: SessionDep,
+        current_user: CurrentUserDep,
+):
+    post = await post_service.create_new_post(db, post_data=post, user_id=current_user.id)
+    return ApiResponse(data=post)
 
 
-@router.put("/{id}", response_model=PostResponse)
-def update_post(id: int, post_update: PostUpdate, db: Session = Depends(get_db),
-                current_user=Depends(get_current_user)):
-    updated_post = post_service.update_post(db, id, post_update, current_user.id)
-    if updated_post is None:
-        raise HTTPException(status_code=404, detail="Post not found")
-
-    if updated_post == "forbidden":
-        raise HTTPException(
-            status_code=403,
-            detail="You do not have permission to edit this post"
-        )
-
-    return updated_post
+@router.put("/{id}", response_model=ApiResponse[PostUpdate])
+async def update_post(
+        id: Annotated[UUID, Path()],
+        post_update: Annotated[PostUpdate, Form()],
+        db: SessionDep,
+        current_user: CurrentUserDep,
+):
+    post_updated = await post_service.update_post(db, id, post_update, current_user.id)
+    return ApiResponse(success=True, data=post_updated)
 
 
-@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_post(id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
-    result = post_service.delete_posts(db, id, current_user.id)
-    if result is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Post not found"
-        )
-
-    if result == "forbidden":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have permission to delete this post"
-        )
-
-    return None
+@router.delete("/{id}", status_code=status.HTTP_200_OK)
+async def delete_post(
+        id: Annotated[UUID, Path()],
+        db: SessionDep,
+        current_user: CurrentUserDep,
+):
+    await post_service.delete_post(db, id, current_user.id)
+    return ApiResponse(success=True, message="Post deleted")

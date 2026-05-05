@@ -1,24 +1,29 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from typing import Annotated
+from uuid import UUID
 
-from core.db_connection.session import get_db
-from src.schemas.user import UserResponse
-from core.auth.dependencies import get_current_user
+from fastapi import APIRouter, Query, Path
+from core.auth.dependencies import CurrentUserDep
+from core.db_connection.session import SessionDep
+from src.schemas.user import UserResponse, UserProfileResponse
 from src.services import user_service
+from src.utils import ApiResponse, PaginationParams
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
-@router.get("/me", response_model=UserResponse)
-def get_current_user_profile(current_user=Depends(get_current_user)):
-    return current_user
+@router.get("/me", response_model=ApiResponse[UserProfileResponse])
+async def get_my_profile(db: SessionDep, current_user: CurrentUserDep, params: Annotated[PaginationParams, Query()]):
+    profile_data = await user_service.get_user_profile(db, user_id=current_user.id, params=params
+                                                       )
+    return ApiResponse(data=profile_data)
 
 
-@router.get("/{id}", response_model=UserResponse)
-def get_user_by_id(id: int, db: Session = Depends(get_db)):
-    user = user_service.get_user_by_id(db, user_id=id)
+@router.get("/{id}", response_model=ApiResponse[UserResponse])
+async def get_user_by_id(id: Annotated[UUID, Path()], db: SessionDep):
+    user = await user_service.get_user_by_id(db, user_id=id)
 
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    return user
+    return ApiResponse(
+        success=True,
+        message="User fetched successfully",
+        data=user
+    )
