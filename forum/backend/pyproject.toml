@@ -20,7 +20,15 @@ dependencies = [
     "ruff>=0.15.12",
     "aiosqlite>=0.22.1",
     "slowapi>=0.1.9",
+    "cryptography>=47.0.0",
+    "pytest>=9.0.3",
+    "pytest-asyncio>=1.3.0",
+    "httpx>=0.28.1",
 ]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+pythonpath = ["."]
 
 [tool.uv]
 managed = true

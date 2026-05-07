@@ -44,7 +44,7 @@ async def issue_token_pair(db: AsyncSession, user, settings: Settings) -> Token:
 @router.post(
     "/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED
 )
-@limiter.limit("5/minute")
+@limiter.limit("10/minute")
 async def register_user(
         request : Request,
         user_data: Annotated[UserCreate, Depends(registration_form)],
@@ -67,7 +67,7 @@ async def register_user(
 
 @router.post("/token", response_model=Token)
 @router.post("/login", response_model=Token, include_in_schema=False)
-@limiter.limit("5/minute")
+@limiter.limit("10/minute")
 async def login_for_tokens(
         request: Request,
         form_data: Annotated[OAuth2PasswordRequestForm, Depends()],

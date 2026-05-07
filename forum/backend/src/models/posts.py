@@ -5,8 +5,6 @@ from sqlalchemy import DateTime, ForeignKey, String, Uuid, func, literal
 from sqlalchemy.orm import Mapped, mapped_column, query_expression, relationship
 from core.db_connection.database import Base
 
-
-
 class Post(Base):
     __tablename__ = "posts"
 
