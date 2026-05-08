@@ -21,19 +21,19 @@ This project supports **user authentication**, **post management**, and a **comm
 ```bash
 forum-test-project/
 │
-├── forum/
-│   └── backend/
-│       ├── core/
-│       ├── src/
-│       │   ├── models/
-│       │   ├── routes/
-│       │   ├── schemas/
-│       │   ├── services/
-│       │   └── tests/
-│       ├── alembic/
-│       ├── app.py
-│       ├── pyproject.toml
-│       └── .env
+└── forum/
+    └── backend/
+        ├── core/
+        ├── src/
+        │   ├── models/
+        │   ├── routes/
+        │   ├── schemas/
+        │   └── services/
+        ├── tests/       
+        ├── alembic/
+        ├── app.py
+        ├── pyproject.toml
+        └── .env
 ```
 
 ---
