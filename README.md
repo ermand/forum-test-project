@@ -20,21 +20,29 @@ This project supports **user authentication**, **post management**, and a **comm
 
 ```bash
 forum-test-project/
-│
 └── forum/
     └── backend/
-        ├── core/
-        ├── src/
+        ├── .venv/             
+        ├── alembic/           
+        ├── core/               
+        │   ├── auth/
+        │   └── db_connection/
+        ├── src/               
+        │   ├── config/
         │   ├── models/
         │   ├── routes/
         │   ├── schemas/
-        │   └── services/
-        ├── tests/       
-        ├── alembic/
-        ├── app.py
-        ├── pyproject.toml
-        └── .env
-```
+        │   ├── services/
+        │   └── utils/
+        ├── tests/              
+        ├── .env                
+        ├── .env.example      
+        ├── alembic.ini         
+        ├── app.py              
+        ├── forum.db
+        ├── pyproject.toml     
+        ├── test.db             
+        └── uv.lock             
 
 ---
 
