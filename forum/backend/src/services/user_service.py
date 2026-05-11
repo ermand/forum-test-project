@@ -33,12 +33,14 @@ async def get_user_by_id(db: AsyncSession, user_id: UUID):
 
 
 async def get_user_by_email(db: AsyncSession, email: str):
-    result = await db.execute(select(User).filter(User.email == email))
+    email2 = email.lower()
+    result = await db.execute(select(User).filter(User.email == email2))
     return result.scalar_one_or_none()
 
 
 async def get_user_by_username(db: AsyncSession, username: str):
-    result = await db.execute(select(User).filter(User.username == username))
+    username2=username.lower()
+    result = await db.execute(select(User).filter(User.username == username2))
     return result.scalar_one_or_none()
 
 
