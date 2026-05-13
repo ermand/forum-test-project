@@ -67,4 +67,4 @@ async def test_get_post_by_id(client, test_posts):
     assert result.status_code == 200
     assert result.json()["success"] is True
     assert result.json()["data"]["title"] == "Post 2"
-    assert result.json()["data"]["content"] == "Content 2"
+    assert result.json()["data"]["content"] == "Content 2 i gjate mjaftueshem"

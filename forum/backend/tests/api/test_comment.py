@@ -5,22 +5,21 @@ import pytest
 # CREATE COMMENT
 # =========================
 @pytest.mark.asyncio
-async def test_create_comment(client, test_posts, auth_headers):
+async def test_create_comment(client, auth_headers, test_posts):
     post1, _, _ = test_posts
 
-    result = await client.post(
+    res = await client.post(
         f"/api/posts/{post1.id}/comments",
         data={
-            "content": "Test Comment"
+            "content": "Ky është një koment valid",
+            "post_id": str(post1.id)
         },
-        headers=auth_headers,
+        headers=auth_headers
     )
-
-    assert result.status_code == 201
-
-    body = result.json()
+    body = res.json()
+    assert res.status_code == 201, f"Gabim: {res.text}"
     assert body["success"] is True
-    assert body["data"]["content"] == "Test Comment"
+    assert body["data"]["content"] == "Ky është një koment valid"
     assert str(body["data"]["post_id"]) == str(post1.id)
 
 

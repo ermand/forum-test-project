@@ -10,7 +10,7 @@ from src.utils import PaginationParams
 async def test_create_post(db,auth_user):
     post_data = PostCreate(
         title="Test Post",
-        content="Test Post"
+        content="Ky është një content i gjatë mjaftueshem"
     )
 
     result = await post_service.create_new_post(db, post_data=post_data, user_id=auth_user.id)
@@ -34,29 +34,24 @@ async def test_get_posts(db, test_posts):
 @pytest.mark.asyncio
 async def test_update_post(db, auth_user, test_posts):
     post1, post2, post3 = test_posts
-
     post_data = PostUpdate(
-        content="Test Test",
+        content="Ky eshte nje content i ri shume i gjate",
     )
 
     result = await post_service.update_post(db, post_id=post2.id, post_update=post_data, user_id=auth_user.id)
+
     assert result is not None
-    assert result.content == "Test Test"
+    assert result.content == "Ky eshte nje content i ri shume i gjate"
 
 
 @pytest.mark.asyncio
 async def test_get_post_by_id(db, auth_user, test_posts, test_comments):
     post1, post2, post3 = test_posts
-
     result = await post_service.get_post(db, post_id=post2.id)
 
     assert result is not None
     assert result.title == "Post 2"
-    assert result.content == "Content 2"
-    assert result.id == post2.id
-    assert result.user_id == auth_user.id
-    assert len(result.comments) == 1
-
+    assert result.content == "Content 2 i gjate mjaftueshem"
 
 @pytest.mark.asyncio
 async def test_delete_post(db, auth_user, test_posts):

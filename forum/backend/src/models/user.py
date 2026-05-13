@@ -26,14 +26,16 @@ class User(Base):
         DateTime(timezone=True), server_default=func.now()
     )
     updated_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), onupdate=func.now()
+        DateTime(timezone=True),
+        server_default = func.now(),
+        onupdate=func.now(),
     )
 
     posts: Mapped[list["Post"]] = relationship(
         "Post",
         back_populates="owner",
         cascade="all, delete-orphan",
-        lazy="selectin",
+        lazy="raise",
         passive_deletes=True,
         order_by="Post.created_at.desc()",
     )
@@ -41,13 +43,13 @@ class User(Base):
         "Comment",
         back_populates="author",
         cascade="all, delete-orphan",
-        lazy="selectin",
+        lazy="raise",
         passive_deletes=True,
     )
     refresh_tokens: Mapped[list["RefreshToken"]] = relationship(
         "RefreshToken",
         back_populates="user",
         cascade="all, delete-orphan",
-        lazy="selectin",
+        lazy="raise",
         passive_deletes=True,
     )

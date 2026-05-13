@@ -26,7 +26,7 @@ class Post(Base):
         "Comment",
         back_populates="post",
         cascade="all, delete-orphan",
-        lazy="selectin",
+        lazy="raise",
         passive_deletes=True,
         order_by="Comment.created_at",
     )

@@ -1,12 +1,12 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
 
 class PostCreate(BaseModel):
-    title: str
-    content: str
+    title: str = Field(..., min_length=3, max_length=200)
+    content: str = Field(..., min_length=10)
 
 
 class PostResponse(BaseModel):
@@ -21,5 +21,5 @@ class PostResponse(BaseModel):
 
 
 class PostUpdate(BaseModel):
-    title: Optional[str] = None
-    content: Optional[str] = None
+    title: Optional[str] = Field(None, min_length=3, max_length=200)
+    content: Optional[str] = Field(None, min_length=10)

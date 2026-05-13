@@ -17,17 +17,18 @@ router = APIRouter(prefix="/users", tags=["Users"])
 @router.get("/me", response_model=ApiResponse[UserProfileResponse])
 async def get_my_profile(request: Request, db: SessionDep, current_user: CurrentUserDep,
                          params: Annotated[PaginationParams, Query()]):
-    profile_data = await user_service.get_user_profile(db, user_id=current_user.id, params=params
+    profile_data = await user_service.get_user_profile(db, user = current_user, params=params
                                                        )
     return ApiResponse(data=profile_data)
 
 
-@router.get("/{id}", response_model=ApiResponse[UserResponse])
-async def get_user_by_id(request: Request, id: Annotated[UUID, Path()], db: SessionDep):
-    user = await user_service.get_user_by_id(db, user_id=id)
+@router.get("/{id}", response_model=ApiResponse[UserProfileResponse])
+async def get_user_by_id(request: Request, id: Annotated[UUID, Path()], db: SessionDep,
+                         params: Annotated[PaginationParams, Query()]):
+    data = await user_service.get_user_by_id(db, user_id=id,params=params)
 
     return ApiResponse(
         success=True,
         message="User fetched successfully",
-        data=user
+        data=data
     )

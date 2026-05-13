@@ -71,24 +71,20 @@ async def get_post(db: AsyncSession, post_id: UUID):
 
 
 async def update_post(db: AsyncSession, post_id: UUID, post_update: PostUpdate, user_id: UUID):
-    result = await db.execute(
-        select(Post).filter(Post.id == post_id)
+    stmt = select(Post).where(
+        Post.id == post_id,
+        Post.user_id == user_id
     )
+
+    result = await db.execute(stmt)
     db_post = result.scalar_one_or_none()
 
-    if db_post is None:
-        raise HTTPException(status_code=404, detail="Post not found")
+    if not db_post:
+        raise HTTPException(status_code=404, detail="Post not found or not authorized")
 
-    if db_post.user_id != user_id:
-        raise HTTPException(
-            status_code=403,
-            detail="You do not have permission to edit this post"
-        )
-
-    if post_update.title:
-        db_post.title = post_update.title
-    if post_update.content:
-        db_post.content = post_update.content
+    update_data = post_update.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_post, key, value)
 
     await db.commit()
     await db.refresh(db_post)
@@ -96,8 +92,7 @@ async def update_post(db: AsyncSession, post_id: UUID, post_update: PostUpdate, 
 
 
 async def delete_post(db: AsyncSession, post_id: UUID, user_id: UUID):
-    result = await db.execute(select(Post).filter(Post.id == post_id))
-    db_post = result.scalar_one_or_none()
+    db_post = await db.get(Post, post_id)
 
     if db_post is None:
         raise HTTPException(

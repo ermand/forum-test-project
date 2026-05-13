@@ -1,13 +1,13 @@
 from datetime import datetime
-from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class CommentCreate(BaseModel):
-    content: str
-    post_id: Optional[UUID] = None
+
+    content: str = Field(..., min_length=1, max_length=1000)
+    post_id: UUID
 
 
 class CommentResponse(BaseModel):
@@ -21,4 +21,4 @@ class CommentResponse(BaseModel):
 
 
 class CommentUpdate(BaseModel):
-    content: str
+    content: str = Field(..., min_length=1, max_length=1000)
