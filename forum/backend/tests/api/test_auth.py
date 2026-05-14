@@ -1,40 +1,85 @@
 import pytest
 
-@pytest.mark.asyncio
-async def test_register(client):
-    res = await client.post(
-        "/api/auth/register",
-        params={
-            "username": "tester_new",
-            "email": "test_new@test.com",
-            "password": "Password123!",
-        }
-    )
-    assert res.status_code == 201, f"Regjistrimi dështoi: {res.text}"
-
 
 @pytest.mark.asyncio
-async def test_login_token(client):
-    # 1. Regjistrimi (Shtojmë email-in dhe kontrollojmë statusin)
-    reg_res = await client.post(
-        "/api/auth/register",
-        params={
-            "username": "tester_new",
-            "email": "tester_new@example.com",  # Shto email-in
-            "password": "Password123!",
-        }
-    )
-    # Ky assert do të të tregojë nëse regjistrimi dështon me 422 apo 400
-    assert reg_res.status_code == 201, f"Regjistrimi dështoi: {reg_res.text}"
+async def test_refresh_token(client):
+    await client.post("/api/auth/register", params={
+        "username": "refresh_user",
+        "email": "refresh@test.com",
+        "password": "Password123!"
+    })
 
-    # 2. Login
+    login_res = await client.post("/api/auth/token", data={
+        "grant_type": "password",
+        "username": "refresh_user",
+        "password": "Password123!"
+    })
+
+    tokens = login_res.json()
+    refresh_token = tokens["refresh_token"]
+
     res = await client.post(
-        "/api/auth/token",
-        data={
-            "grant_type": "password",
-            "username": "tester_new",
-            "password": "Password123!",
-        }
+        "/api/auth/token/refresh",
+        data={"refresh_token": refresh_token}
     )
 
-    assert res.status_code == 200, f"Login dështoi: {res.text}"
+    assert res.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_logout(client):
+    await client.post("/api/auth/register", params={
+        "username": "logout_user",
+        "email": "logout@test.com",
+        "password": "Password123!"
+    })
+
+    login_res = await client.post("/api/auth/token", data={
+        "grant_type": "password",
+        "username": "logout_user",
+        "password": "Password123!"
+    })
+
+    tokens = login_res.json()
+
+    access_token = tokens["access_token"]
+    refresh_token = tokens["refresh_token"]
+
+    res = await client.post(
+        "/api/auth/logout",
+        headers={"Authorization": f"Bearer {access_token}"}
+    )
+
+    assert res.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_refresh_after_logout_should_fail(client):
+    await client.post("/api/auth/register", params={
+        "username": "after_logout_user",
+        "email": "afterlogout@test.com",
+        "password": "Password123!"
+    })
+
+    login_res = await client.post("/api/auth/token", data={
+        "grant_type": "password",
+        "username": "after_logout_user",
+        "password": "Password123!"
+    })
+
+    tokens = login_res.json()
+
+    access_token = tokens["access_token"]
+    refresh_token = tokens["refresh_token"]
+
+    await client.post(
+        "/api/auth/logout",
+        headers={"Authorization": f"Bearer {access_token}"}
+    )
+
+    refresh_res = await client.post(
+        "/api/auth/token/refresh",
+        data={"refresh_token": refresh_token}
+    )
+
+    assert refresh_res.status_code == 401
