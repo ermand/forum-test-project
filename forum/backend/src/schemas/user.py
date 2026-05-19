@@ -11,6 +11,13 @@ class UserBase(BaseModel):
     username: str = Field(min_length=3, max_length=50)
     email: EmailStr
 
+    @field_validator("username", "email", mode="before")
+    @classmethod
+    def normalize_identity(cls, v: str) -> str:
+        if isinstance(v, str):
+            return v.strip().lower()
+        return v
+
 
 class UserCreate(UserBase):
     password: str = Field(..., min_length=8, max_length=128)

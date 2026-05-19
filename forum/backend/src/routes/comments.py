@@ -2,8 +2,6 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Path, status, Query, Form, Request
-from slowapi import Limiter
-from slowapi.util import get_remote_address
 
 from core.auth.dependencies import CurrentUserDep
 from core.db_connection.session import SessionDep
@@ -13,7 +11,6 @@ from src.services import comment_service
 from src.utils.schemas import ApiResponse, PaginationParams, PaginatedResponse
 
 router = APIRouter(tags=["Comments"])
-limiter = Limiter(key_func=get_remote_address)
 
 
 @router.post(
@@ -22,10 +19,10 @@ limiter = Limiter(key_func=get_remote_address)
     status_code=status.HTTP_201_CREATED,
 )
 async def create_comment(
-        _request: Request,
-        comment: Annotated[CommentCreate, Form()],
-        db: SessionDep,
-        current_user: CurrentUserDep,
+    _request: Request,
+    comment: Annotated[CommentCreate, Form()],
+    db: SessionDep,
+    current_user: CurrentUserDep,
 ):
     db_comment = await comment_service.comment_create(
         db,
@@ -44,10 +41,10 @@ async def create_comment(
     response_model=ApiResponse[PaginatedResponse[CommentResponse]],
 )
 async def read_comments(
-        _request: Request,
-        post_id: Annotated[UUID, Path()],
-        db: SessionDep,
-        params: Annotated[PaginationParams, Query()],
+    _request: Request,
+    post_id: Annotated[UUID, Path()],
+    db: SessionDep,
+    params: Annotated[PaginationParams, Query()],
 ):
     result = await comment_service.get_post_comments(
         db,
@@ -66,10 +63,10 @@ async def read_comments(
     response_model=ApiResponse[CommentResponse],
 )
 async def update_comment(
-        comment_id: Annotated[UUID, Path()],
-        comment: Annotated[CommentUpdate, Form()],
-        db: SessionDep,
-        current_user: CurrentUserDep,
+    comment_id: Annotated[UUID, Path()],
+    comment: Annotated[CommentUpdate, Form()],
+    db: SessionDep,
+    current_user: CurrentUserDep,
 ):
     db_comment = await comment_service.update_post_comment(
         db,
@@ -89,9 +86,9 @@ async def update_comment(
     response_model=ApiResponse[bool],
 )
 async def delete_comment(
-        comment_id: Annotated[UUID, Path()],
-        db: SessionDep,
-        current_user: CurrentUserDep,
+    comment_id: Annotated[UUID, Path()],
+    db: SessionDep,
+    current_user: CurrentUserDep,
 ):
     result = await comment_service.delete_post_comment(
         db,

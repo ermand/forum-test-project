@@ -10,3 +10,8 @@ def hash_password(password: str) -> str:
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return password_hash.verify(plain_password, hashed_password)
+
+
+def verify_dummy_password(plain_password: str) -> bool:
+    password_hash.verify(plain_password, DUMMY_PASSWORD_HASH)
+    return False

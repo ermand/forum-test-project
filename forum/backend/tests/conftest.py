@@ -11,6 +11,7 @@ from src.models.comments import Comment
 from src.models.posts import Post
 from src.models.user import User
 
+
 # =========================
 # ENGINE
 # =========================
@@ -22,6 +23,7 @@ def engine():
         poolclass=StaticPool,
         future=True,
     )
+
 
 # =========================
 # DB SESSION
@@ -45,12 +47,14 @@ async def db(engine):
         await session.rollback()
         await session.close()
 
+
 # =========================
 # CLIENT (FastAPI override DB)
 # =========================
 @pytest_asyncio.fixture
 async def client(db):
     app.state.limiter_enabled = False
+
     async def override_get_db():
         yield db
 
@@ -58,12 +62,13 @@ async def client(db):
     transport = ASGITransport(app=app)
 
     async with AsyncClient(
-            transport=transport,
-            base_url="http://test",
+        transport=transport,
+        base_url="http://test",
     ) as ac:
         yield ac
 
     app.dependency_overrides.clear()
+
 
 # =========================
 # =========================
@@ -80,8 +85,10 @@ async def auth_user(db):
     await db.refresh(user)
     return user
 
+
 # =========================
 # AUTH HEADERS
+
 
 @pytest_asyncio.fixture
 async def auth_headers(client, auth_user):
@@ -94,23 +101,29 @@ async def auth_headers(client, auth_user):
         },
     )
 
-
-
-    assert response.status_code == 200, \
-        f"Login failed! Status: {response.status_code}, Body: {response.text}. " \
+    assert response.status_code == 200, (
+        f"Login failed! Status: {response.status_code}, Body: {response.text}. "
         f"Kredencialet e provuara: test@test.com / Password123!"
+    )
 
     token = response.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
+
 
 # =========================
 # POSTS
 # =========================
 @pytest_asyncio.fixture
 async def test_posts(db, auth_user):
-    post1 = Post(title="Post 1", content="Content 1 i gjate mjaftueshem", user_id=auth_user.id)
-    post2 = Post(title="Post 2", content="Content 2 i gjate mjaftueshem", user_id=auth_user.id)
-    post3 = Post(title="Post 3", content="Content 3 i gjate mjaftueshem", user_id=auth_user.id)
+    post1 = Post(
+        title="Post 1", content="Content 1 i gjate mjaftueshem", user_id=auth_user.id
+    )
+    post2 = Post(
+        title="Post 2", content="Content 2 i gjate mjaftueshem", user_id=auth_user.id
+    )
+    post3 = Post(
+        title="Post 3", content="Content 3 i gjate mjaftueshem", user_id=auth_user.id
+    )
 
     db.add_all([post1, post2, post3])
     await db.commit()
@@ -119,6 +132,7 @@ async def test_posts(db, auth_user):
         await db.refresh(p)
 
     return post1, post2, post3
+
 
 # =========================
 # COMMENTS

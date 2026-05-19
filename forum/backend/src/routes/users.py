@@ -2,33 +2,36 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Query, Path, Request
+
 from core.auth.dependencies import CurrentUserDep
 from core.db_connection.session import SessionDep
-from src.schemas.user import UserResponse, UserProfileResponse
+from src.schemas.user import UserProfileResponse
 from src.services import user_service
 from src.utils import ApiResponse, PaginationParams
-from slowapi import Limiter
-from slowapi.util import get_remote_address
 
-limiter = Limiter(key_func=get_remote_address)
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
 @router.get("/me", response_model=ApiResponse[UserProfileResponse])
-async def get_my_profile(request: Request, db: SessionDep, current_user: CurrentUserDep,
-                         params: Annotated[PaginationParams, Query()]):
-    profile_data = await user_service.get_user_profile(db, user = current_user, params=params
-                                                       )
+async def get_my_profile(
+    request: Request,
+    db: SessionDep,
+    current_user: CurrentUserDep,
+    params: Annotated[PaginationParams, Query()],
+):
+    profile_data = await user_service.get_user_profile(
+        db, user=current_user, params=params
+    )
     return ApiResponse(data=profile_data)
 
 
 @router.get("/{id}", response_model=ApiResponse[UserProfileResponse])
-async def get_user_by_id(request: Request, id: Annotated[UUID, Path()], db: SessionDep,
-                         params: Annotated[PaginationParams, Query()]):
-    data = await user_service.get_user_by_id(db, user_id=id,params=params)
+async def get_user_by_id(
+    request: Request,
+    id: Annotated[UUID, Path()],
+    db: SessionDep,
+    params: Annotated[PaginationParams, Query()],
+):
+    data = await user_service.get_user_by_id(db, user_id=id, params=params)
 
-    return ApiResponse(
-        success=True,
-        message="User fetched successfully",
-        data=data
-    )
+    return ApiResponse(success=True, message="User fetched successfully", data=data)

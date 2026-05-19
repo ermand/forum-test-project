@@ -54,11 +54,8 @@ forum-test-project/
         ├── alembic/
         ├── app.py
         ├── alembic.ini
-        ├── forum.db
-        ├── test.db
         ├── pyproject.toml
         ├── uv.lock
-        ├── .env
         └── .env.example
 
 ---
@@ -92,11 +89,11 @@ PROJECT_NAME=forum-test-project
 
 DEBUG=true
 
-DATABASE_URL=sqlite:///./forum.db
+SQLITE_DATABASE_URL=sqlite:///./forum.db
 
 POSTGRES_URL=#
 
-APP_ENV=development
+APP_ENV=develop
 
 JWT_ALGORITHM=RS256
 ACCESS_TOKEN_EXPIRE_MINUTES=15
@@ -160,7 +157,7 @@ uv run pytest tests
 # 🗄️ Database Support
 
 SQLite (default):
-DATABASE_URL=sqlite:///./forum.db
+SQLITE_DATABASE_URL=sqlite:///./forum.db
 
 PostgreSQL (optional):
 POSTGRES_URL=postgresql+asyncpg://user:password@localhost:5432/forum_db
