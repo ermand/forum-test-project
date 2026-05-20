@@ -10,11 +10,8 @@ async def test_create_comment(client, auth_headers, test_posts):
 
     res = await client.post(
         f"/api/posts/{post1.id}/comments",
-        data={
-            "content": "Ky është një koment valid",
-            "post_id": str(post1.id)
-        },
-        headers=auth_headers
+        data={"content": "Ky është një koment valid", "post_id": str(post1.id)},
+        headers=auth_headers,
     )
     body = res.json()
     assert res.status_code == 201, f"Gabim: {res.text}"

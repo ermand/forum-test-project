@@ -13,6 +13,7 @@ class ApiResponse(BaseModel, Generic[T]):
     data: T | None = None
     model_config = ConfigDict(from_attributes=True)
 
+
 class ErrorResponse(BaseModel):
     success: bool = False
     error: str

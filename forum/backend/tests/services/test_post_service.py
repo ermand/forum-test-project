@@ -1,5 +1,4 @@
 import pytest
-import pytest_asyncio
 
 from src.schemas.posts import PostCreate, PostUpdate
 from src.services import post_service
@@ -7,13 +6,14 @@ from src.utils import PaginationParams
 
 
 @pytest.mark.asyncio
-async def test_create_post(db,auth_user):
+async def test_create_post(db, auth_user):
     post_data = PostCreate(
-        title="Test Post",
-        content="Ky është një content i gjatë mjaftueshem"
+        title="Test Post", content="Ky është një content i gjatë mjaftueshem"
     )
 
-    result = await post_service.create_new_post(db, post_data=post_data, user_id=auth_user.id)
+    result = await post_service.create_new_post(
+        db, post_data=post_data, user_id=auth_user.id
+    )
 
     assert result is not None
     assert result.title == post_data.title
@@ -38,7 +38,9 @@ async def test_update_post(db, auth_user, test_posts):
         content="Ky eshte nje content i ri shume i gjate",
     )
 
-    result = await post_service.update_post(db, post_id=post2.id, post_update=post_data, user_id=auth_user.id)
+    result = await post_service.update_post(
+        db, post_id=post2.id, post_update=post_data, user_id=auth_user.id
+    )
 
     assert result is not None
     assert result.content == "Ky eshte nje content i ri shume i gjate"
@@ -52,6 +54,7 @@ async def test_get_post_by_id(db, auth_user, test_posts, test_comments):
     assert result is not None
     assert result.title == "Post 2"
     assert result.content == "Content 2 i gjate mjaftueshem"
+
 
 @pytest.mark.asyncio
 async def test_delete_post(db, auth_user, test_posts):

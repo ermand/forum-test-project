@@ -40,22 +40,20 @@ async def test_update_post(client, test_posts, auth_headers):
 async def test_delete_post(client, test_posts, auth_headers):
     post1, _, _ = test_posts
 
-    result = await client.delete(
-        f"/api/posts/{post1.id}",
-        headers=auth_headers
-    )
+    result = await client.delete(f"/api/posts/{post1.id}", headers=auth_headers)
     assert result.status_code == 200
     assert result.json()["success"] is True
 
 
 @pytest.mark.asyncio
-async def test_get_posts(client):
+async def test_get_posts(client, test_posts):
     result = await client.get(
-        f"/api/posts/",
+        "/api/posts/",
     )
     assert result.status_code == 200
     assert result.json()["success"] is True
-    assert len(result.json()["data"]) == 2
+    assert len(result.json()["data"]["items"]) == len(test_posts)
+    assert result.json()["data"]["meta"]["total_items"] == len(test_posts)
 
 
 @pytest.mark.asyncio

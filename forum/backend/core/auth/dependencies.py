@@ -1,17 +1,16 @@
 from typing import Annotated
 
-from fastapi import Depends
+from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
-from src.models.user import User
-from core.db_connection.session import SessionDep
+from sqlalchemy import select
+
 from core.auth.jwt import AccessTokenError, decode_access_token
+from core.db_connection.session import SessionDep
+from src.models.user import User
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
 OAuth2TokenDep = Annotated[str, Depends(oauth2_scheme)]
 
-
-from sqlalchemy import select
-from fastapi import HTTPException
 
 async def get_current_user(
     token: OAuth2TokenDep,
@@ -40,5 +39,6 @@ async def get_current_user(
         )
 
     return user
+
 
 CurrentUserDep = Annotated[User, Depends(get_current_user)]

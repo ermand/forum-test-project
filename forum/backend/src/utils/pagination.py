@@ -10,9 +10,9 @@ T = TypeVar("T")
 
 
 async def paginate(
-        db: AsyncSession,
-        statement: Select,
-        params: PaginationParams,
+    db: AsyncSession,
+    statement: Select,
+    params: PaginationParams,
 ) -> PaginatedResponse[T]:
     count_statement = select(func.count()).select_from(
         statement.order_by(None).subquery()
@@ -20,9 +20,7 @@ async def paginate(
 
     total_items = await db.scalar(count_statement) or 0
 
-    result = await db.execute(
-        statement.offset(params.offset).limit(params.limit)
-    )
+    result = await db.execute(statement.offset(params.offset).limit(params.limit))
 
     items = result.scalars().all()
 
@@ -37,8 +35,8 @@ async def paginate(
 
 
 async def paginate_sequence(
-        items: Sequence[T],
-        params: PaginationParams,
+    items: Sequence[T],
+    params: PaginationParams,
 ) -> PaginatedResponse[T]:
     start = params.offset
     end = start + params.limit

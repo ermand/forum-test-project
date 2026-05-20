@@ -4,7 +4,7 @@ from typing import Annotated
 from enum import StrEnum
 
 from fastapi import Depends
-from pydantic import Field, computed_field, AliasChoices
+from pydantic import computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -25,14 +25,7 @@ class Settings(BaseSettings):
 
     SQLITE_DATABASE_URL: str = "sqlite:///./forum.db"
 
-    POSTGRES_URL: str | None = Field(
-        default=None,
-        validation_alias=AliasChoices(
-            "POSTGRES_URL",
-            "POSTGRESS_URL",
-            "POTGRESS_URL",
-        ),
-    )
+    POSTGRES_URL: str | None = None
 
     JWT_PRIVATE_KEY: str
     JWT_PUBLIC_KEY: str
@@ -50,7 +43,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=BASE_DIR / ".env",
         env_file_encoding="utf-8",
-        extra="ignore",
+        extra="forbid",
     )
 
     @computed_field

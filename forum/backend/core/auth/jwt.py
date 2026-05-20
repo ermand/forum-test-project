@@ -52,5 +52,3 @@ def decode_access_token(token: str) -> dict:
         raise AccessTokenError("Could not validate credentials")
 
     return payload
-
-

@@ -17,4 +17,5 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
         finally:
             await db.close()
 
+
 SessionDep = Annotated[AsyncSession, Depends(get_db)]

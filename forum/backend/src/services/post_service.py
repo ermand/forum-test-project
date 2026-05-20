@@ -31,11 +31,7 @@ def post_loader_options(*, include_comments: bool = False):
 
 
 async def create_new_post(db: AsyncSession, post_data: PostCreate, user_id: UUID):
-    db_post = Post(
-        title=post_data.title,
-        content=post_data.content,
-        user_id=user_id
-    )
+    db_post = Post(title=post_data.title, content=post_data.content, user_id=user_id)
     db.add(db_post)
     await db.commit()
     await db.refresh(db_post)
@@ -63,18 +59,16 @@ async def get_post(db: AsyncSession, post_id: UUID):
 
     if not post:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Post not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Post not found"
         )
 
     return post
 
 
-async def update_post(db: AsyncSession, post_id: UUID, post_update: PostUpdate, user_id: UUID):
-    stmt = select(Post).where(
-        Post.id == post_id,
-        Post.user_id == user_id
-    )
+async def update_post(
+    db: AsyncSession, post_id: UUID, post_update: PostUpdate, user_id: UUID
+):
+    stmt = select(Post).where(Post.id == post_id, Post.user_id == user_id)
 
     result = await db.execute(stmt)
     db_post = result.scalar_one_or_none()

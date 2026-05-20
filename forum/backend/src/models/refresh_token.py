@@ -36,4 +36,6 @@ class RefreshToken(Base):
         DateTime(timezone=True), server_default=func.now()
     )
 
-    user: Mapped["User"] = relationship("User", back_populates="refresh_tokens", lazy="selectin")
+    user: Mapped["User"] = relationship(
+        "User", back_populates="refresh_tokens", lazy="raise"
+    )

@@ -5,7 +5,6 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class CommentCreate(BaseModel):
-
     content: str = Field(..., min_length=1, max_length=1000)
     post_id: UUID
 
